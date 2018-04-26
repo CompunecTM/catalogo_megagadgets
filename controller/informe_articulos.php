@@ -836,7 +836,6 @@ class informe_articulos extends fbase_controller
         $pdf->AddPage();
         $pdf->Image(__DIR__.'/../view/image/2-02.jpg',0,-1,211);
         $pdf->AddFont('Oganesson','','Oganesson.php');
-        $pdf->SetFont('Oganesson','',20);
         $y = 55;
 
         $linkfamilia = array();
@@ -852,6 +851,14 @@ class informe_articulos extends fbase_controller
         if ($this->tarifaaux != '') {
             $tarifa = $this->objtarifa->get($this->tarifaaux);
         }
+
+        $madre = ''; 
+        $x = 10;
+
+        $famiaux['list'] = array();
+        $famiaux['principal'] = array();
+        $famiaux['madre'] = array();
+        $famican = 0;
         
         foreach ($familia as $i => $fa) {
 
@@ -864,131 +871,254 @@ class informe_articulos extends fbase_controller
             $pdf->SetXY(10,$y);
             $descripcion = strtoupper($fa->descripcion);
             $descripcion = substr($descripcion,0,44);
-            $linkfamilia[$fa->codfamilia] = $pdf->AddLink();
-            $pdf->cell(15,6,($i+1),0,0,"L",false,$linkfamilia[$fa->codfamilia]);
-            $pdf->cell(175,6," - ".$descripcion,0,0,"L",false,$linkfamilia[$fa->codfamilia]);
 
-            foreach ($fa->get_articulos(0,1000000000) as $o => $art) {
-                $y+=8;
+            $hijas = $fa->hijas();
 
-                if ($y>=271) {
-                    $y = 55;
-                    $pdf->AddPage();
-                    $pdf->Image(__DIR__.'/../view/image/2-02.jpg',0,-1,211);
+            if (count($hijas)>0) {
+
+                $pdf->SetFont('Oganesson','',20);
+                $pdf->SetXY(10,$y);
+                $pdf->cell(15,6,($i+1),0,0,"L",false);
+                $pdf->cell(175,6,$descripcion,0,0,"L");
+
+                foreach ($hijas as $e => $huno) {
+                    $y+=10;
+                    $pdf->SetXY(10,$y);
+                    $descripcionuno = strtoupper($huno->descripcion);
+                    $descripcionuno = substr($descripcionuno,0,44);
+
+                    $hijauno = $huno->hijas();
+                    if (count($hijauno)>0) {
+                        $pdf->SetFont('Oganesson','',20);
+                        $pdf->cell(20,6,($i+1)."-".($e+1),0,0,"L",false);
+                        $pdf->cell(175,6,$descripcionuno,0,0,"L");
+
+                        foreach ($hijauno as $u => $hdos) {
+                            $y+=8;
+                            $pdf->SetXY(10,$y);
+                            $descripciondos = strtoupper($hdos->descripcion);
+                            $descripciondos = substr($descripciondos,0,44);
+                            
+                            $hijados = $hdos->hijas();
+                            if (count($hijados)>0) {
+                                $pdf->SetFont('Oganesson','',20);
+                                $pdf->cell(30,6,($i+1)."-".($e+1)."-".($u+1),0,0,"L",false);
+                                $pdf->cell(175,6,$descripciondos,0,0,"L");
+                                foreach ($hijados as $g => $htres) {
+                                    $y+=8;
+                                    $pdf->SetXY(10,$y);
+                                    $descripciontres = strtoupper($htres->descripcion);
+                                    $descripciontres = substr($descripciontres,0,44);
+
+                                    /*$aux = $this->db->select("SELECT * FROM articulos WHERE codfamilia = '".$fa->codfamilia."' AND (stockfis > 0 OR nostock = true) AND bloqueado = false");
+
+                                    if (count($aux)>0) {*/
+
+                                        $famiaux['lick'][$famican] = $pdf->AddLink();
+                                        $pdf->SetFont('Oganesson','U',20);
+                                        $pdf->cell(40,6,($i+1)."-".($e+1)."-".($u+1)."-".($g+1),0,0,"L",false,$famiaux['lick'][$famican]);
+                                        $pdf->cell(175,6,$descripciontres,0,0,"L",false,$famiaux['lick'][$famican]);
+
+                                        $famiaux['list'][$famican] = $htres;
+
+                                        $famiaux['principal'][$famican] = $descripcion;
+                                        $famiaux['madre'][$famican] = $descripciontres;
+                                        $famican++;
+                                   // }
+                                }
+                            }else{
+
+                                /*$aux = $this->db->select("SELECT * FROM articulos WHERE codfamilia = '".$fa->codfamilia."' AND (stockfis > 0 OR nostock =  true) AND bloqueado = false");
+
+                                if (count($aux)>0) {*/
+
+                                    $pdf->SetFont('Oganesson','U',20);
+                                    $famiaux['lick'][$famican] = $pdf->AddLink();
+                                    $pdf->cell(30,6,($i+1)."-".($e+1)."-".($u+1),0,0,"L",false,$famiaux['lick'][$famican]);
+                                    $pdf->cell(175,6,$descripciondos,0,0,"L",false,$famiaux['lick'][$famican]);
+                                    $famiaux['list'][$famican] = $hdos;
+
+                                    $famiaux['principal'][$famican] = $descripcion;
+                                    $famiaux['madre'][$famican] = $descripcionuno;
+                                    $famican++;
+                               // }
+                            }
+                        }
+                    }else{
+
+                       /* $aux = $this->db->select("SELECT * FROM articulos WHERE codfamilia = '".$fa->codfamilia."' AND (stockfis > 0 OR nostock = true) AND bloqueado = false");
+
+                        if (count($aux)>0) {*/
+
+                            $pdf->SetFont('Oganesson','U',20);
+                            $famiaux['lick'][$famican] = $pdf->AddLink();
+                            $pdf->cell(20,6,($i+1)."-".($e+1),0,0,"L",false,$famiaux['lick'][$famican]);
+                            $pdf->cell(175,6,$descripcionuno,0,0,"L",false,$famiaux['lick'][$famican]);
+
+                            $famiaux['list'][$famican] = $huno;
+                            $famiaux['principal'][$famican] = $descripcion;
+                            $famiaux['madre'][$famican] = "";
+                            $famican++;
+                        //}
+                    }
                 }
+            }else{
 
-                $pdf->SetXY(20,$y);
-                $descripcion = strtoupper($art->descripcion);
-                $descripcion = substr($descripcion,0,44);
-                $linkarticulo[$art->referencia] = $pdf->AddLink();
-                $pdf->cell(15,6,($i+1)."-".($o+1),0,0,"L",false,$linkarticulo[$art->referencia]);
-                $pdf->cell(155,6," - ".$descripcion,0,0,"L",false,$linkarticulo[$art->referencia]);
+                /*$aux = $this->db->select("SELECT * FROM articulos WHERE codfamilia = '".$fa->codfamilia."' AND (stockfis > 0 OR nostock = true) AND bloqueado = false");
+
+                if (count($aux)>0) {*/
+
+                    $pdf->SetFont('Oganesson','U',20);
+                    $famiaux['lick'][$famican] = $pdf->AddLink();
+                    $pdf->cell(15,6,($i+1),0,0,"L",false,$famiaux['lick'][$famican]);
+                    $pdf->cell(175,6,$descripcion,0,0,"L",false,$famiaux['lick'][$famican]);
+
+                    $famiaux['list'][$famican] = $fa;
+                    $famiaux['principal'][$famican] = "";
+                    $famiaux['madre'][$famican] = "";
+                    $famican++;
+
+                //}
             }
+            
 
-           
             $y+=16;
+            
+           
         }
 
         $pdf->SetTextColor(255,255,255);
         $nonfon = "4-04.jpg";
-        foreach ($familia as $i => $fa) {
-            $pdf->AddPage();
-            $pdf->Image(__DIR__.'/../view/image/'.$nonfon,0,-1,211);
 
-            if ($nonfon == "3-03.jpg") {
-                $nonfon = "4-04.jpg";
-            }else{
-                $nonfon = "3-03.jpg";
-            }
+        if (count($famiaux['list'])>0) {
+            
+            foreach ($famiaux['list'] as $i => $fa) {
+                
+                    
+                $pdf->AddPage();
+                $pdf->Image(__DIR__.'/../view/image/'.$nonfon,0,-1,211);
 
-            $pdf->SetXY(3,10);
-            $pdf->SetFont('Arial','B',45);
-            $descripcion = strtoupper($fa->descripcion);
-            $descripcion = substr($descripcion,0,44);
-            $pdf->SetTextColor(255,255,255);
-            $pdf->SetLink($linkfamilia[$fa->codfamilia]);            
-            $pdf->cell(206,25,$descripcion,0,0,"L");
-
-            $y=50;
-            $pdf->SetFillColor(249,87,0);
-            $pdf->SetFont('Oganesson','',9);
-            $sig = 0;
-            $can = 0;
-            $xaux = 61;
-            $xaux2 = 10;
-            $yaux = $y;
-
-            $articulo = $fa->get_articulos(0,1000000000);
-
-            if ($tarifa) {
-
-              $articulo =  $this->set_precios($tarifa,$articulo);
-
-            }
-
-            foreach ($articulo as $o => $art) {
-
-                if ($sig > 1) {
-                    $sig = 0;
-                    $xaux = 61;
-                    $xaux2 = 10;
-                    $yaux += 61;
+                if ($nonfon == "3-03.jpg") {
+                    $nonfon = "4-04.jpg";
+                }else{
+                    $nonfon = "3-03.jpg";
                 }
 
-                if ($can > 7) {
-                    $pdf->AddPage();
-                    $pdf->Image(__DIR__.'/../view/image/'.$nonfon,0,-1,211);
-                    $pdf->SetXY(3,10);
-                    $pdf->SetFont('Arial','B',45);
-                    $pdf->SetTextColor(255,255,255);
-                    $pdf->cell(206,25,$descripcion,0,0,"L");
-                    $sig = 0;
-                    $xaux = 61;
-                    $xaux2 = 10;
-                    $can = 0;
-                    $yaux = 50;
+                $aux = false;
+                if ($famiaux['principal'][$i] != ""&&$famiaux['madre'][$i] !="") {
+                    
+                    $pdf->SetXY(3,3);
+                    $pdf->SetTextColor(0,0,0);
+                    $pdf->SetFont('Arial','B',20);
+                    $pdf->cell(206,8,$famiaux['principal'][$i],0,0,"R");
 
-                    if ($nonfon == "3-03.jpg") {
-                        $nonfon = "4-04.jpg";
-                    }else{
-                        $nonfon = "3-03.jpg";
+                    $pdf->SetXY(3,12);
+                    $pdf->SetTextColor(0,0,0);
+                    $pdf->SetFont('Arial','B',20);
+                    $pdf->cell(206,8,$famiaux['madre'][$i],0,0,"R");
+
+                    $aux = true;
+
+                }
+
+                
+                $pdf->SetFont('Arial','B',45);
+                $descripcion = strtoupper($fa->descripcion);
+                $descripcion = substr($descripcion,0,44);
+                $pdf->SetTextColor(255,255,255);
+                $pdf->SetLink($famiaux['lick'][$i]); 
+                if ($aux) {
+                   
+                    $pdf->SetXY(3,20);           
+                    $pdf->cell(206,15,$descripcion,0,0,"L");
+                 # code...
+                }else{
+                    $pdf->SetXY(3,10);           
+                    $pdf->cell(206,25,$descripcion,0,0,"L");
+                }
+
+                $y=50;
+                $pdf->SetFillColor(249,87,0);
+                $pdf->SetFont('Oganesson','',9);
+                $sig = 0;
+                $can = 0;
+                $xaux = 61;
+                $xaux2 = 10;
+                $yaux = $y;
+
+                $articulo = $fa->get_articulos(0,1000000000);
+
+                if ($tarifa) {
+
+                  $articulo =  $this->set_precios($tarifa,$articulo);
+
+                }
+
+                foreach ($articulo as $o => $art) {
+
+                    if (!$art->bloqueado&&$art->stockfis) {
+                        if ($sig > 1) {
+                            $sig = 0;
+                            $xaux = 61;
+                            $xaux2 = 10;
+                            $yaux += 61;
+                        }
+
+                        if ($can > 7) {
+                            $pdf->AddPage();
+                            $pdf->Image(__DIR__.'/../view/image/'.$nonfon,0,-1,211);
+                            $pdf->SetXY(3,10);
+                            $pdf->SetFont('Arial','B',45);
+                            $pdf->SetTextColor(255,255,255);
+                            $pdf->cell(206,25,$descripcion,0,0,"L");
+                            $sig = 0;
+                            $xaux = 61;
+                            $xaux2 = 10;
+                            $can = 0;
+                            $yaux = 50;
+
+                            if ($nonfon == "3-03.jpg") {
+                                $nonfon = "4-04.jpg";
+                            }else{
+                                $nonfon = "3-03.jpg";
+                            }
+                        }
+
+                        if (file_exists($art->imagen_url())) {
+                            $pdf->Image($art->imagen_url(),$xaux2,$yaux,50,55);
+                        }
+                        
+                        $pdf->SetXY($xaux,$yaux);
+                        $pdf->SetFont('Oganesson','',9);
+                        $pdf->SetTextColor(255,255,255);
+                        //$pdf->SetLink($linkarticulo[$art->referencia]);
+                        $this->verificar_titulo($pdf,$yaux,$art->descripcion,20);
+
+                        $pdf->SetTextColor(0,0,0);
+                        $pdf->SetXY($xaux,$yaux+15);
+                        $pdf->cell(40,4,"PRECIO :",0,0,"L");
+
+                        $pdf->SetXY($xaux,$yaux+21);
+                        $pdf->SetFont('Oganesson','',15);
+                        $pdf->cell(40,4,$this->show_precio($art->pvp_iva()),0,0,"L");
+
+                        $pdf->SetXY($xaux,$yaux+27);
+                        $pdf->SetFont('Oganesson','',8);
+                        $pdf->MultiCell(40,2,substr($art->observaciones,0,350),0,"J");
+
+                        if ($sig == 0) {
+                            $xaux = 159;
+                            $xaux2 = 108;
+                        }else{
+                            $xaux = 61;
+                            $xaux2 = 10;
+                        }
+
+                        $sig++;
+                        $can++;
                     }
                 }
-
-                if (file_exists($art->imagen_url())) {
-                    $pdf->Image($art->imagen_url(),$xaux2,$yaux,50,55);
-                }
-                
-                $pdf->SetXY($xaux,$yaux);
-                $pdf->SetFont('Oganesson','',9);
-                $pdf->SetTextColor(255,255,255);
-                $pdf->SetLink($linkarticulo[$art->referencia]);
-                $this->verificar_titulo($pdf,$yaux,$art->descripcion,20);
-
-                $pdf->SetTextColor(0,0,0);
-                $pdf->SetXY($xaux,$yaux+15);
-                $pdf->cell(40,4,"PRECIO :",0,0,"L");
-
-                $pdf->SetXY($xaux,$yaux+21);
-                $pdf->SetFont('Oganesson','',15);
-                $pdf->cell(40,4,$this->show_precio($art->pvp_iva()),0,0,"L");
-
-                $pdf->SetXY($xaux,$yaux+27);
-                $pdf->SetFont('Oganesson','',8);
-                $pdf->MultiCell(40,2,substr($art->observaciones,0,350),0,"J");
-
-                if ($sig == 0) {
-                    $xaux = 159;
-                    $xaux2 = 108;
-                }else{
-                    $xaux = 61;
-                    $xaux2 = 10;
-                }
-
-                $sig++;
-                $can++;
             }
-            
         }
 
         $pdf->Output();
@@ -1013,7 +1143,7 @@ class informe_articulos extends fbase_controller
         foreach ($articulos as $i => $value) {
 
             $articulos[$i]->pvp = $articulos[$i]->pvp * (100 - $tarifa->x()) / 100 - $tarifa->y();
-            
+
         }
 
         return $articulos;
