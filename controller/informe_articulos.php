@@ -858,133 +858,157 @@ class informe_articulos extends fbase_controller
         $famiaux['list'] = array();
         $famiaux['principal'] = array();
         $famiaux['madre'] = array();
+        $menu = array();
+        $can = 0;
+        $canarra = 0;
         $famican = 0;
-        
+
         foreach ($familia as $i => $fa) {
-
-            if ($y>=271) {
-                $y = 55;
-                $pdf->AddPage();
-                $pdf->Image(__DIR__.'/../view/image/2-02.jpg',0,-1,211);
-            }
-
-            $pdf->SetXY(10,$y);
-            $descripcion = strtoupper($fa->descripcion);
-            $descripcion = substr($descripcion,0,44);
-
             $hijas = $fa->hijas();
-
-            if (count($hijas)>0) {
-
-                $pdf->SetFont('Oganesson','',20);
-                $pdf->SetXY(10,$y);
-                $pdf->cell(15,6,($i+1),0,0,"L",false);
-                $pdf->cell(175,6,$descripcion,0,0,"L");
+            $can2=0;
+            if (count($hijas)>0) { 
+                $canarra++;
+                $canmadre = $canarra;
+                $can++;
+                $menu[$canarra]['descripcion'] = $fa->descripcion;
+                $menu[$canarra]['inde'] = $can;
+                $menu[$canarra]['xaux'] = 10;
 
                 foreach ($hijas as $e => $huno) {
-                    $y+=10;
-                    $pdf->SetXY(10,$y);
-                    $descripcionuno = strtoupper($huno->descripcion);
-                    $descripcionuno = substr($descripcionuno,0,44);
-
+                    $can2++;
                     $hijauno = $huno->hijas();
                     if (count($hijauno)>0) {
-                        $pdf->SetFont('Oganesson','',20);
-                        $pdf->cell(20,6,($i+1)."-".($e+1),0,0,"L",false);
-                        $pdf->cell(175,6,$descripcionuno,0,0,"L");
+                        $canarra++;
+                        $menu[$canarra]['descripcion'] = $huno->descripcion;
+                        $menu[$canarra]['inde'] = $can."-".$can2;
+                        $menu[$canarra]['xaux'] = 20;
+                        $can3 = 0;
+                        $canmadre = $canarra;
 
                         foreach ($hijauno as $u => $hdos) {
-                            $y+=8;
-                            $pdf->SetXY(10,$y);
-                            $descripciondos = strtoupper($hdos->descripcion);
-                            $descripciondos = substr($descripciondos,0,44);
-                            
+
                             $hijados = $hdos->hijas();
                             if (count($hijados)>0) {
-                                $pdf->SetFont('Oganesson','',20);
-                                $pdf->cell(30,6,($i+1)."-".($e+1)."-".($u+1),0,0,"L",false);
-                                $pdf->cell(175,6,$descripciondos,0,0,"L");
+                                $can3++;
+                                $canarra++;
+                                $menu[$canarra]['descripcion'] = $hdos->descripcion;
+                                $menu[$canarra]['inde'] = $can."-".$can2."-".$can3;
+                                $menu[$canarra]['xaux'] = 30;
+                                $can4 = 0;
+
                                 foreach ($hijados as $g => $htres) {
-                                    $y+=8;
-                                    $pdf->SetXY(10,$y);
-                                    $descripciontres = strtoupper($htres->descripcion);
-                                    $descripciontres = substr($descripciontres,0,44);
-
-                                    /*$aux = $this->db->select("SELECT * FROM articulos WHERE codfamilia = '".$fa->codfamilia."' AND (stockfis > 0 OR nostock = true) AND bloqueado = false");
-
-                                    if (count($aux)>0) {*/
-
+                                    
+                                    if ($this->verificar_familia($htres->codfamilia)) {
+                                        
                                         $famiaux['lick'][$famican] = $pdf->AddLink();
-                                        $pdf->SetFont('Oganesson','U',20);
-                                        $pdf->cell(40,6,($i+1)."-".($e+1)."-".($u+1)."-".($g+1),0,0,"L",false,$famiaux['lick'][$famican]);
-                                        $pdf->cell(175,6,$descripciontres,0,0,"L",false,$famiaux['lick'][$famican]);
-
+                                       
                                         $famiaux['list'][$famican] = $htres;
 
-                                        $famiaux['principal'][$famican] = $descripcion;
-                                        $famiaux['madre'][$famican] = $descripciontres;
+                                        $famiaux['principal'][$famican] =$fa->descripcion;
+                                        $famiaux['madre'][$famican] = $hdos->descripcion;
+                                       
+                                        $can4++;
+                                        
+                                        $canarra++;
+                                        $menu[$canarra]['descripcion'] = $huno->descripcion;
+                                        $menu[$canarra]['inde'] = $can."-".$can2."-".$can3."-".$can4;
+                                        $menu[$canarra]['xaux'] = 35;
+                                        $menu[$canarra]['link'] = $famiaux['lick'][$famican];
+
                                         $famican++;
-                                   // }
+                                    }
                                 }
+
+                                if ($can4 ==0) {
+                                    $can3--;
+                                    unset($menu[$canarra]);
+                                }
+
                             }else{
-
-                                /*$aux = $this->db->select("SELECT * FROM articulos WHERE codfamilia = '".$fa->codfamilia."' AND (stockfis > 0 OR nostock =  true) AND bloqueado = false");
-
-                                if (count($aux)>0) {*/
-
-                                    $pdf->SetFont('Oganesson','U',20);
+                                if ($this->verificar_familia($hdos->codfamilia)) {
+                                    $can3++;
                                     $famiaux['lick'][$famican] = $pdf->AddLink();
-                                    $pdf->cell(30,6,($i+1)."-".($e+1)."-".($u+1),0,0,"L",false,$famiaux['lick'][$famican]);
-                                    $pdf->cell(175,6,$descripciondos,0,0,"L",false,$famiaux['lick'][$famican]);
                                     $famiaux['list'][$famican] = $hdos;
 
-                                    $famiaux['principal'][$famican] = $descripcion;
-                                    $famiaux['madre'][$famican] = $descripcionuno;
+                                    $famiaux['principal'][$famican] = $fa->descripcion;
+                                    $famiaux['madre'][$famican] = $huno->descripcion;
+                                    
+                                    $canarra++;
+                                    $menu[$canarra]['descripcion'] = $hdos->descripcion;
+                                    $menu[$canarra]['inde'] = $can."-".$can2."-".$can3;
+                                    $menu[$canarra]['xaux'] = 30;
+                                    $menu[$canarra]['link'] = $famiaux['lick'][$famican];
+
                                     $famican++;
-                               // }
+                                }
                             }
                         }
-                    }else{
 
-                       /* $aux = $this->db->select("SELECT * FROM articulos WHERE codfamilia = '".$fa->codfamilia."' AND (stockfis > 0 OR nostock = true) AND bloqueado = false");
+                        if ($can3 ==0) {
+                            $can2--;
+                            unset($menu[$canmadre]);
+                        }
 
-                        if (count($aux)>0) {*/
-
-                            $pdf->SetFont('Oganesson','U',20);
+                    }else{ 
+                        if ($this->verificar_familia($huno->codfamilia)) {
                             $famiaux['lick'][$famican] = $pdf->AddLink();
-                            $pdf->cell(20,6,($i+1)."-".($e+1),0,0,"L",false,$famiaux['lick'][$famican]);
-                            $pdf->cell(175,6,$descripcionuno,0,0,"L",false,$famiaux['lick'][$famican]);
-
                             $famiaux['list'][$famican] = $huno;
-                            $famiaux['principal'][$famican] = $descripcion;
+                            $famiaux['principal'][$famican] = $fa->descripcion;
                             $famiaux['madre'][$famican] = "";
+                            
+                            $canarra++;
+                            $menu[$canarra]['descripcion'] = $huno->descripcion;
+                            $menu[$canarra]['inde'] = $can."-".$can2;
+                            $menu[$canarra]['xaux'] = 20;
+                            $menu[$canarra]['link'] = $famiaux['lick'][$famican];
+
                             $famican++;
-                        //}
+                            
+                        }
                     }
                 }
             }else{
 
-                /*$aux = $this->db->select("SELECT * FROM articulos WHERE codfamilia = '".$fa->codfamilia."' AND (stockfis > 0 OR nostock = true) AND bloqueado = false");
-
-                if (count($aux)>0) {*/
-
-                    $pdf->SetFont('Oganesson','U',20);
+                if ($this->verificar_familia($fa->codfamilia)) {
+                    $can++;
+                    $can2++;
                     $famiaux['lick'][$famican] = $pdf->AddLink();
-                    $pdf->cell(15,6,($i+1),0,0,"L",false,$famiaux['lick'][$famican]);
-                    $pdf->cell(175,6,$descripcion,0,0,"L",false,$famiaux['lick'][$famican]);
-
                     $famiaux['list'][$famican] = $fa;
-                    $famiaux['principal'][$famican] = "";
+                    $famiaux['principal'][$famican] = $fa->descripcion;
                     $famiaux['madre'][$famican] = "";
+                    
+                    $canarra++;
+                    $menu[$canarra]['descripcion'] = $fa->descripcion;
+                    $menu[$canarra]['inde'] = $can;
+                    $menu[$canarra]['xaux'] = 10;
+                    $menu[$canarra]['link'] = $famiaux['lick'][$famican];
+
                     $famican++;
-
-                //}
+                    
+                }
             }
-            
 
-            $y+=16;
-            
+            if ($can2 ==0) {
+                $can--;
+                unset($menu[$canmadre]);
+            }
+        }
+
+        $y = 50;
+        $pdf->SetFont('Oganesson','',20);
+        foreach ($menu as $i => $m ) {
+           $pdf->SetXY(20,$y);
+           if (isset($m['link'])) {
+                $pdf->SetFont('Oganesson','U',20);
+                $pdf->cell($m['xaux'],5,$m['inde'],0,0,'L',false,$m['link']);
+                $pdf->cell(200,5,$m['descripcion'],0,0,'L',false,$m['link']);
+           }else{
+                $pdf->SetFont('Oganesson','',20);
+                $pdf->cell($m['xaux'],5,$m['inde'],0,0);
+                $pdf->cell(200,5,$m['descripcion'],0,0);
+           }
            
+           $y+=8;
         }
 
         $pdf->SetTextColor(255,255,255);
@@ -1086,6 +1110,8 @@ class informe_articulos extends fbase_controller
 
                         if (file_exists($art->imagen_url())) {
                             $pdf->Image($art->imagen_url(),$xaux2,$yaux,50,55);
+                        }else{
+                            $pdf->Image(__DIR__.'/../view/image/5-05.jpg',$xaux2,$yaux,50,55);
                         }
                         
                         $pdf->SetXY($xaux,$yaux);
@@ -1135,6 +1161,16 @@ class informe_articulos extends fbase_controller
             $resstr .= $titulo;
             $resstr = strtoupper($resstr);
             $pdf->Cell(40,10,$resstr,0,0,"C",true);
+        }
+    }
+
+    public function verificar_familia($familia){
+        $data = $this->db->select("SELECT * FROM articulos WHERE codfamilia = '".$familia."' AND bloqueado = false AND (stockfis > 0 OR nostock = true)");
+
+        if (count($data)>0) {
+            return true;
+        }else{
+            return false;
         }
     }
 
