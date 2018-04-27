@@ -995,21 +995,38 @@ class informe_articulos extends fbase_controller
             }
         }
 
-        $y = 50;
-        $pdf->SetFont('Oganesson','',20);
+        $y = 45;
+        $pdf->SetFont('Oganesson','',12);
         foreach ($menu as $i => $m ) {
            $pdf->SetXY(20,$y);
+
+           $descripcion = substr($m['descripcion'],0,58);
+           $descripcion = strtoupper($descripcion);
+           $descripcion = utf8_decode($descripcion);
+
+           if ($m['xaux']==10) {
+                $aling = 'L';
+            }else {
+                $aling = 'R';
+            }
+
            if (isset($m['link'])) {
-                $pdf->SetFont('Oganesson','U',20);
-                $pdf->cell($m['xaux'],5,$m['inde'],0,0,'L',false,$m['link']);
-                $pdf->cell(200,5,$m['descripcion'],0,0,'L',false,$m['link']);
+                $pdf->SetFont('Oganesson','U',12);
+
+                $pdf->cell($m['xaux'],5,$m['inde']." ",0,0,$aling,false,$m['link']);
+                $pdf->cell(200,5,$descripcion,0,0,'L',false,$m['link']);
            }else{
-                $pdf->SetFont('Oganesson','',20);
-                $pdf->cell($m['xaux'],5,$m['inde'],0,0);
-                $pdf->cell(200,5,$m['descripcion'],0,0);
+                $pdf->SetFont('Oganesson','',12);
+                $pdf->cell($m['xaux'],5,$m['inde']." ",0,0,$aling);
+                $pdf->cell(200,5,$descripcion,0,0);
            }
-           
-           $y+=8;
+            
+            $y+=8;
+            if ($y>'261') {
+               $pdf->AddPage();
+               $pdf->Image(__DIR__.'/../view/image/2-02.jpg',0,-1,211);
+               $y = 45;
+           }
         }
 
         $pdf->SetTextColor(255,255,255);
