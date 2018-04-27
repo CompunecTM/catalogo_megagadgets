@@ -860,9 +860,9 @@
             <option value="">Seleccione familia</option>
             {loop="$fsc->familia->all()"}
             {if="$fsc->familiaaux==$value->codfamilia"}
-            <option value="{$value->codfamilia}" selected="">{$value->descripcion}</option>
+            <option value="{$value->codfamilia}" selected="">{$value->nivel}{$value->descripcion}</option>
             {else}
-            <option value="{$value->codfamilia}">{$value->descripcion}</option>
+            <option value="{$value->codfamilia}">{$value->nivel}{$value->descripcion}</option>
             {/if}
             {/loop}
          </select>

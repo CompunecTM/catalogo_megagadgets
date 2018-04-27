@@ -862,6 +862,7 @@ class informe_articulos extends fbase_controller
         $can = 0;
         $canarra = 0;
         $famican = 0;
+        $canmadre = 0;
 
         foreach ($familia as $i => $fa) {
             $hijas = $fa->hijas();
