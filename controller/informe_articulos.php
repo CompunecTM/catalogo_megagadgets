@@ -1131,7 +1131,7 @@ class informe_articulos extends fbase_controller
                         if (file_exists($url)) {
                             $pdf->Image($url,$xaux2,$yaux);
                         }else{
-                            $pdf->Image(__DIR__.'/../view/image/5-05.jpg',$xaux2,$yaux,50,55);
+                            $pdf->Image(__DIR__.'/../view/image/5-05.png',$xaux2,$yaux,50,55);
                         }
                         
                         $pdf->SetXY($xaux,$yaux);
